@@ -15,7 +15,7 @@ $baseDir = realpath(dirname(__FILE__)) . "/images";
  * The prefix you want to add to your generated file urls
  * ie defining "images/" here results to <img src="images/file.png" /> for file.png
  */
-$urlPrefix = "images/";
+$urlPrefix = "images";
 
 $input = "/";
 if (!empty($_GET['directory'])) {
@@ -28,13 +28,19 @@ $dir = new DirectoryIterator($baseDir . $input);
 $directories = array();
 $files = array();
 
+if ($input != "/") {
+	$inputParts = explode("/", rtrim($input, '/'));
+	array_pop($inputParts);
+	$directories['..'] = implode("/", $inputParts);
+}
+
 foreach ($dir as $file) {
 	if (!$file->isDot()) {//We don't want to list hidden files
 		if ($file->isDir()) {
 			$directories[$file->getFileName()] = $input . $file->getFileName();
 		}
 		else {
-			$files[$file->getFileName()] = $urlPrefix . '/' . $file->getFileName();
+			$files[$file->getFileName()] = $urlPrefix . $input . $file->getFileName();
 		}
 	}
 }

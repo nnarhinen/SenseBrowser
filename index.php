@@ -21,15 +21,9 @@
 		}
 		#sb-leftpanel {
 			float: left;
-			height: 360px;
+			height: 340px;
 			width: 179px;
 			border-right: 1px solid #ccc;
-		}
-		#sb-rightpanel {
-			float: left;
-			height: 360px;
-			width: 420px;
-			clear: right;
 		}
 		#sb-bottomleftpanel {
 			border-top: 1px solid #ccc;
@@ -38,8 +32,26 @@
 			width: 180px;
 			clear: left;
 		}
-		#sb-bottomleftpanel, #sb-bottomrightpanel {
+		#sb-topleftpanel {
+			color: #fff;
+			font-size: 10pt;
+			font-weight: bold;
+			padding: 2px;
+			border-bottom: 1px solid #ccc;
+			float: left;
+			height: 15px;
+			width: 176px;
+			clear: left;
+		}
+		#sb-bottomleftpanel, #sb-bottomrightpanel, #sb-topleftpanel, #sb-toprightpanel {
 			background-color: #99ccff;
+		}
+		#sb-rightpanel {
+			float: left;
+			height: 340px;
+			width: 420px;
+			clear: right;
+			overflow: auto;
 		}
 		#sb-bottomrightpanel {
 			border-top: 1px solid #ccc;
@@ -47,6 +59,12 @@
 			width: 412px;
 			height: 31px;
 			padding: 4px 4px 4px 4px;
+		}
+		#sb-toprightpanel {
+			border-bottom: 1px solid #ccc;
+			float: left;
+			height: 19px;
+			width: 420px;
 		}
 		#sb-leftpanel ul, #sb-bottomleftpanel ul {
 			list-style: none;
@@ -103,6 +121,10 @@
 			max-width: 70px;
 			max-height: 70px;			
 		}
+		.ajax-loading {
+			background-image: url('layout/ajax-loader.gif');
+			background-repeat: no-repeat;
+		}
 	</style>
 	<script type="text/javascript" src="lib/jquery-1.4.2.min.js"></script>
 	<script type="text/javascript" src="lib/uploadify/jquery.uploadify.v2.1.0.min.js"></script>
@@ -111,21 +133,30 @@
 	function SenseBrowser(elementId, options) {
 		this.container = $("#" + elementId);
 		this.browserScript = options.browserScript != undefined ? options.browserScript : 'browse.php';
+		this.uploaderScript = options.uploaderScript != undefined ? options.uploaderScript : 'upload.php';
 		
 		this.initialize = function(input) {
+			this.container.html("");
+			this.container.addClass('ajax-loading');
 			var browserObj = this;
+			var currentDir = input;
 			$.getJSON(this.browserScript, {directory: input}, function(data) {
 				sbDirs = data.directories;
 				sbFiles = data.files;
-				browserObj.redraw(sbDirs, sbFiles);
+				browserObj.redraw(sbDirs, sbFiles, currentDir);
 			});
 		}
 		
-		this.redraw = function(sbDirs, sbFiles) {
+		this.redraw = function(sbDirs, sbFiles, currentDir) {
+			if (currentDir == undefined || currentDir == '') {
+				currentDir = "/";
+			}
 			var browserObj = this;
-			this.container.html("");
 			var leftPanel = $("<div />").attr("id", "sb-leftpanel");
 			var rightPanel = $("<div />").attr("id", "sb-rightpanel");
+			var topLeftPanel = $("<div />").attr("id", "sb-topleftpanel");
+			topLeftPanel.html(currentDir);
+			var topRightPanel = $("<div />").attr("id", "sb-toprightpanel");
 			var bottomRightPanel = $("<div />").attr("id", "sb-bottomrightpanel");
 			var bottomLeftPanel = $("<div />").attr("id", "sb-bottomleftpanel");
 			var dirList = $("<ul />").attr("id", "sb-dirlist");
@@ -137,35 +168,45 @@
 				var tnBlock = $("<div />").attr("class", "sb-thumbnail").click(function() { $('.sb-thumbnail').removeClass('sb-thumbnail-active'); $(this).addClass('sb-thumbnail-active'); });
 				tnBlock.append($("<img />").attr("src", sbFiles[key]).attr("alt", key));
 				tnBlock.append($("<br />"));
-				tnBlock.append($("<span />").html(key));
+				var fileName = key;
+				if (fileName.length > 15) {
+					fileName = fileName.substring(0, 12) + "..";
+				}
+				tnBlock.append($("<span />").html(fileName));
 				rightPanel.append(tnBlock);
 			}
 
 			bottomLeftPanel.append($("<ul />").append($("<li />").append($("<img />").attr("src", "layout/folder_red.png")).append($("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto"))));
-			var uploadButton = $("<input />").attr("type", "file").attr("name", "uploadfile");
+			var uploadButton = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
 			bottomRightPanel.append(uploadButton);
 			bottomRightPanel.append($("<img />").attr("id", "sb-apply").attr("src", "layout/apply.png").attr("title", "Käytä"));
 			bottomRightPanel.append($("<img />").attr("id", "sb-cancel").attr("src", "layout/button_cancel.png").attr("title", "Peruuta"));
 
 			leftPanel.append(dirList);
+			this.container.removeClass('ajax-loading');
+			this.container.append(topLeftPanel);
+			this.container.append(topRightPanel);
 			this.container.append(leftPanel);
 			this.container.append(rightPanel);
 			this.container.append(bottomLeftPanel);
 			this.container.append(bottomRightPanel);
 			uploadButton.uploadify({
 				'uploader'  : 'lib/uploadify/uploadify.swf',
-				'script'    : 'index.php',
-				'cancelImg' : 'cancel.png',
-				'buttonText': 'Selaa',
+				'script'    : this.uploaderScript,
+				'cancelImg' : 'layout/uploadify_cancel.png',
 				'buttonImg' : 'layout/upload_fi.png',
 				'height'	: 18,
 				'width'		: 116,
 				'fileDataName': 'file',
 				'wmode'		: 'transparent',
+				'folder'	: currentDir,
+				'auto'		: true,
 				onComplete: function(event, queueID, fileObj, response, data) {
-					activeInput.val(response);
-					activeAnchor.attr('href', '/tiedosto/' + response);
-					overlay.close();
+					var refreshDir = currentDir;
+					if (refreshDir == '/') {
+						refreshDir == "";
+					}
+					browserObj.initialize(refreshDir);
 					return true;
 				}
 			});
@@ -176,6 +217,7 @@
 	$(document).ready(function() {
 		var sBrowser = new SenseBrowser("sb-container", {
 			'browserScript'	: 'browse.php',
+			'uploaderScript': 'upload.php',
 		});
 		sBrowser.initialize();
 	});
