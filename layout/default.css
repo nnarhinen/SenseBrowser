@@ -122,6 +122,6 @@ body {
 	max-height: 70px;			
 }
 .ajax-loading {
-	background-image: url('layout/ajax-loader.gif');
+	background-image: url('ajax-loader.gif');
 	background-repeat: no-repeat;
 }

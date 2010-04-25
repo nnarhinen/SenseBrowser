@@ -16,6 +16,7 @@
 		var sBrowser = new SenseBrowser("sb-container", {
 			'browserScript'	: 'browse.php',
 			'uploaderScript': 'upload.php',
+			'dirCreatorScript' : 'create.php',
 		});
 		sBrowser.initialize();
 	});

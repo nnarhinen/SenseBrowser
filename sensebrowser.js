@@ -2,6 +2,7 @@ function SenseBrowser(elementId, options) {
 	this.container = $("#" + elementId);
 	this.browserScript = options.browserScript != undefined ? options.browserScript : 'browse.php';
 	this.uploaderScript = options.uploaderScript != undefined ? options.uploaderScript : 'upload.php';
+	this.dirCreatorScript = options.dirCreatorScript != undefined ? options.dirCreatorScript : 'create.php';
 	
 	this.initialize = function(input) {
 		this.container.html("");
@@ -45,7 +46,30 @@ function SenseBrowser(elementId, options) {
 			rightPanel.append(tnBlock);
 		}
 
-		bottomLeftPanel.append($("<ul />").append($("<li />").append($("<img />").attr("src", "layout/folder_red.png")).append($("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto"))));
+		bottomLeftPanel.append(
+			$("<ul />").append(
+				$("<li />").append(
+					$("<img />").attr("src", "layout/folder_red.png")
+				).append(
+					$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
+						function() { 
+							var newDir = prompt("Uuden hakemiston nimi", "");
+							if (newDir == '' || newDir == null) {
+								return false;
+							}
+							$.get(
+								browserObj.dirCreatorScript, 
+								{ currentDirectory: currentDir, newDirectory: newDir},
+								function() {
+									browserObj.initialize(currentDir);
+								}	
+							);
+							return false; 
+						}
+					)
+				)
+			)
+		);
 		var uploadButton = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
 		bottomRightPanel.append(uploadButton);
 		bottomRightPanel.append($("<img />").attr("id", "sb-apply").attr("src", "layout/apply.png").attr("title", "Käytä"));
