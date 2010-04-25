@@ -3,6 +3,8 @@ function SenseBrowser(elementId, options) {
 	this.browserScript = options.browserScript != undefined ? options.browserScript : 'browse.php';
 	this.uploaderScript = options.uploaderScript != undefined ? options.uploaderScript : 'upload.php';
 	this.dirCreatorScript = options.dirCreatorScript != undefined ? options.dirCreatorScript : 'create.php';
+	this.layoutDir = options.layoutDir != undefined ? options.layoutDir : 'layout/';
+	this.libDir = options.libDir != undefined ? options.libDir : 'lib/';
 	
 	this.initialize = function(input) {
 		this.container.html("");
@@ -32,7 +34,7 @@ function SenseBrowser(elementId, options) {
 		var dirList = $("<ul />").attr("id", "sb-dirlist");
 		var key;
 		for (key in sbDirs) {
-			dirList.append($("<li />").append($("<img />").attr("src", 'layout/folder_blue.png').attr("alt", "folder")).append($("<a />").attr("href", "#").attr("rel", sbDirs[key]).html(key).click(function () { browserObj.initialize($(this).attr("rel")); return false; })));
+			dirList.append($("<li />").append($("<img />").attr("src", this.layoutDir + 'folder_blue.png').attr("alt", "folder")).append($("<a />").attr("href", "#").attr("rel", sbDirs[key]).html(key).click(function () { browserObj.initialize($(this).attr("rel")); return false; })));
 		}
 		for (key in sbFiles) {
 			var tnBlock = $("<div />").attr("class", "sb-thumbnail").click(function() { $('.sb-thumbnail').removeClass('sb-thumbnail-active'); $(this).addClass('sb-thumbnail-active'); });
@@ -49,7 +51,7 @@ function SenseBrowser(elementId, options) {
 		bottomLeftPanel.append(
 			$("<ul />").append(
 				$("<li />").append(
-					$("<img />").attr("src", "layout/folder_red.png")
+					$("<img />").attr("src", this.layoutDir + "folder_red.png")
 				).append(
 					$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
 						function() { 
@@ -72,8 +74,8 @@ function SenseBrowser(elementId, options) {
 		);
 		var uploadButton = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
 		bottomRightPanel.append(uploadButton);
-		bottomRightPanel.append($("<img />").attr("id", "sb-apply").attr("src", "layout/apply.png").attr("title", "Käytä"));
-		bottomRightPanel.append($("<img />").attr("id", "sb-cancel").attr("src", "layout/button_cancel.png").attr("title", "Peruuta"));
+		bottomRightPanel.append($("<img />").attr("id", "sb-apply").attr("src", this.layoutDir + "apply.png").attr("title", "Käytä"));
+		bottomRightPanel.append($("<img />").attr("id", "sb-cancel").attr("src", this.layoutDir + "button_cancel.png").attr("title", "Peruuta"));
 
 		leftPanel.append(dirList);
 		this.container.removeClass('ajax-loading');
@@ -84,10 +86,10 @@ function SenseBrowser(elementId, options) {
 		this.container.append(bottomLeftPanel);
 		this.container.append(bottomRightPanel);
 		uploadButton.uploadify({
-			'uploader'  : 'lib/uploadify/uploadify.swf',
+			'uploader'  : this.libDir + 'uploadify/uploadify.swf',
 			'script'    : this.uploaderScript,
-			'cancelImg' : 'layout/uploadify_cancel.png',
-			'buttonImg' : 'layout/upload_fi.png',
+			'cancelImg' : this.layoutDir + 'uploadify_cancel.png',
+			'buttonImg' : this.layoutDir + 'upload_fi.png',
 			'height'	: 18,
 			'width'		: 116,
 			'fileDataName': 'file',
