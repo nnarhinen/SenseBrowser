@@ -19,9 +19,7 @@
 			'dirCreatorScript' : '../../backends/php/create.php',
 			'libDir' : '../../lib/',
 			'layoutDir' : '../../layout/',
-			onApply : function(result) {
-				alert("You chose: " + result);
-			}
+			'mode' : 'ckeditor'
 		});
 		sBrowser.initialize();
 	});
