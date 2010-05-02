@@ -1,11 +1,5 @@
 <?php
-/**
- * The filesystem path to your files directory
- * ie. /var/www/mydomain.com/files
- *
- * You might want to change this!
- */
-$baseDir = realpath(dirname(__FILE__)) . "/images";
+include 'config.php';
 
 $input = "";
 if (!empty($_GET['currentDirectory'])) {
