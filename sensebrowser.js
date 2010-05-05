@@ -16,12 +16,31 @@ function SenseBrowser(elementId, options) {
 				window.opener.CKEDITOR.tools.callFunction(funcNum, result);
 				window.close();
 			}
+			this.cancelFunction = function() {
+				window.close();
+			}
 			break;
 		case "tinymce":
-			alert("TINYMCE not implemented");
+			this.applyFunction = function(result) {
+				var win = tinyMCEPopup.getWindowArg("window");
+
+				win.document.getElementById(tinyMCEPopup.getWindowArg("input")).value = result;
+
+				if (typeof(win.ImageDialog) != "undefined") {
+					if (win.ImageDialog.getImageData)
+						win.ImageDialog.getImageData();
+					if (win.ImageDialog.showPreviewImage)
+						win.ImageDialog.showPreviewImage(result);
+				}
+				tinyMCEPopup.close();
+			}
+			this.cancelFunction = function() {
+				tinyMCEPopup.close();
+			}
 			break;
 		default:
 			this.applyFunction = options.onApply;
+			this.cancelFunction = options.onCancel;
 			break;
 	}
 	
