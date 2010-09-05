@@ -13,7 +13,7 @@
 	$(document).ready(function() {
 		CKEDITOR.replace('editor1',
 		{
-			filebrowserBrowseUrl : 'browser.php',
+			filebrowserBrowseUrl : '../../integration/ckeditor/browser.php',
 			filebrowserWindowWidth : '620',
 			filebrowserWindowHeight : '470'
 		});
