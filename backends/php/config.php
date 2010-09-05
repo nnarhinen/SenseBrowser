@@ -12,3 +12,6 @@ $baseDir = realpath(dirname(__FILE__) . "/../../images");
  * ie defining "/images" here results to <img src="/images/file.png" /> for file.png
  */
 $urlPrefix = "/images";
+
+$cacheDir = realpath(dirname(__FILE__) . "/cache");
+$cacheUrlPrefix = '/backends/php/cache';

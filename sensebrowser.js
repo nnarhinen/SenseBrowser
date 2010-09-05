@@ -29,17 +29,21 @@ function SenseBrowser(elementId, options) {
 		$('#sb-fileupload').dialog('destroy');
 		$('#sb-fileupload').remove();
 		this.container.html("");
-		this.container.addClass('ajax-loading');
+		this.container.addClass('ui-corner-all ui-widget-content ui-widget ui-dialog');
+		this.container.css('font-size', '8pt');
+		this.container.append($('<div />').attr('style', "padding: 0px 0px 40px 5px; background-image: url('" + this.layoutDir + "ajax-loader.gif'); background-repeat: no-repeat; background-position: left center;").text('Ladataan..'));
 		var browserObj = this;
 		var currentDir = input;
 		$.getJSON(this.browserScript, {directory: input}, function(data) {
 			sbDirs = data.directories;
 			sbFiles = data.files;
-			browserObj.redraw(sbDirs, sbFiles, currentDir);
+			sbThumbnails = data.thumbnails;
+			browserObj.container.html('');
+			browserObj.redraw(sbDirs, sbFiles, currentDir, sbThumbnails);
 		});
 	}
 	
-	this.redraw = function(sbDirs, sbFiles, currentDir) {
+	this.redraw = function(sbDirs, sbFiles, currentDir, sbThumbnails) {
 		if (currentDir == undefined || currentDir == '') {
 			currentDir = "/";
 		}
@@ -58,7 +62,8 @@ function SenseBrowser(elementId, options) {
 		curDir.append($('<li />').append(dirList));
 		for (key in sbFiles) {
 			var tnBlock = $("<div />").attr("class", "sb-thumbnail ui-state-default").click(function() { browserObj.selectedImg = $(this).find("img:first-child").attr('rel'); $('.sb-thumbnail').removeClass('ui-state-highlight'); $(this).addClass('ui-state-highlight'); });
-			tnBlock.append($("<img />").attr("src", sbFiles[key]).attr("alt", key).attr("rel", sbFiles[key]));
+			var src = sbThumbnails.hasOwnProperty(key) ? sbThumbnails[key] : sbFiles[key];
+			tnBlock.append($("<img />").attr("src", src).attr("alt", key).attr("rel", sbFiles[key]));
 			tnBlock.append($("<br />"));
 			var fileName = key;
 			if (fileName.length > 15) {
@@ -95,6 +100,7 @@ function SenseBrowser(elementId, options) {
 		uploadButton.button({icons: {primary: 'ui-icon-extlink'}});
 		uploadButton.click(function() {
 			$('#sb-fileupload').dialog('open');
+			$('#sb-fileupload').parent().css('font-size', '8pt');
 		});
 		bottomPanel.append(uploadButton);
 		bottomPanel.append($('<div />').attr('style', 'float: right;').append(

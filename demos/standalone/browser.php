@@ -31,7 +31,7 @@
 </head>
 
 <body>
-	<div id="sb-container" class="ui-corner-all ui-widget-content ui-widget ui-dialog">
+	<div id="sb-container">
 		<!--PlaceHolder-->
 	</div>
 </body>
