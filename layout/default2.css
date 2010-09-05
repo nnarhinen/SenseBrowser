@@ -1,0 +1,112 @@
+body {
+	font-size: 8pt;
+}
+#sb-container {
+	width: 620px;
+	height: 400px;
+	/*border: 1px solid black;*/
+	font-size: 8pt;
+}
+#sb-leftpanel {
+	float: left;
+	height: 340px;
+	width: 175px;
+	border-right: 1px solid #ccc;
+	overflow: auto;
+}
+#sb-topleftpanel {
+	color: #fff;
+	font-size: 10pt;
+	font-weight: bold;
+	padding: 2px;
+	border-bottom: 1px solid #ccc;
+	float: left;
+	height: 15px;
+	width: 176px;
+	clear: left;
+}
+#sb-rightpanel {
+	float: left;
+	height: 340px;
+	width: 444px;
+	clear: right;
+	overflow: auto;
+}
+#sb-bottompanel {
+	border-top: 1px solid #ccc;
+	float: left;
+	clear: both;
+	height: 31px;
+	padding: 0px;
+	width: 100%;
+	padding-bottom: 4px;
+	padding-top: 4px;	
+}
+#sb-toprightpanel {
+	border-bottom: 1px solid #ccc;
+	float: left;
+	height: 19px;
+	width: 420px;
+}
+#sb-toprightpanel a {
+	float: right;
+	font-weight: bold;
+	color: #fff;
+	text-decoration: none;
+	font-size: 10pt;
+	margin: 2px 4px 0px 0px;
+}
+#sb-leftpanel ul, #sb-bottompanel ul {
+	float: left;
+	list-style: none;
+	margin: 5px;
+	padding: 5px;
+	padding-left: 0px;
+}
+#sb-bottompanel ul {
+	margin: 0px;
+	padding: 0px;
+}
+#sb-leftpanel li, #sb-bottompanel li {
+	clear: both;
+}
+#sb-leftpanel li img, #sb-bottompanel li img {
+	vertical-align: middle;
+	max-width: 20px;
+}
+#sb-leftpanel li a, #sb-bottompanel li a {
+	color: #000;
+	text-decoration: none;
+	font-size: 8pt;
+}
+#sb-leftpanel li a:hover, #sb-bottompanel li a:hover {
+	text-decoration: underline;
+}
+#sb-bottompanel object {
+	cursor: hand;
+	cursor: pointer;
+	float: left;
+	margin-top: 5px;
+}
+.uploadifyQueue {
+	float: left;
+}
+.sb-thumbnail {
+	float: left;
+	text-align: center;
+	width: 100px;
+	height: 100px;
+	margin: 2px;
+	margin-top: 4px;
+	cursor:pointer;
+	cursor:hand
+}
+.sb-thumbnail img {
+	margin-top: 4px;
+	max-width: 70px;
+	max-height: 70px;			
+}
+.ajax-loading {
+	background-image: url('ajax-loader.gif');
+	background-repeat: no-repeat;
+}

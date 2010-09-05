@@ -6,8 +6,10 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
 	<title>SenseBrowser</title>
-	<link rel="stylesheet" type="text/css" href="../../layout/default.css" />
+	<link rel="stylesheet" type="text/css" href="../../layout/default2.css" >
+	<link rel="stylesheet" type="text/css" href="../../lib/jquery-ui-1.8.4.custom/css/custom-theme/jquery-ui-1.8.4.custom.css" />
 	<script type="text/javascript" src="../../lib/jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="../../lib/jquery-ui-1.8.4.custom/js/jquery-ui-1.8.4.custom.min.js"></script>
 	<script type="text/javascript" src="../../lib/uploadify/jquery.uploadify.v2.1.0.min.js"></script>
 	<script type="text/javascript" src="../../lib/uploadify/swfobject.js"></script>
 	<script type="text/javascript" src="../../sensebrowser.js"></script>
@@ -29,7 +31,7 @@
 </head>
 
 <body>
-	<div id="sb-container">
+	<div id="sb-container" class="ui-corner-all ui-widget-content ui-widget ui-dialog">
 		<!--PlaceHolder-->
 	</div>
 </body>

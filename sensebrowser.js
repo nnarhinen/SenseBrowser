@@ -26,6 +26,8 @@ function SenseBrowser(elementId, options) {
 	}
 	
 	this.initialize = function(input) {
+		$('#sb-fileupload').dialog('destroy');
+		$('#sb-fileupload').remove();
 		this.container.html("");
 		this.container.addClass('ajax-loading');
 		var browserObj = this;
@@ -44,19 +46,18 @@ function SenseBrowser(elementId, options) {
 		var browserObj = this;
 		var leftPanel = $("<div />").attr("id", "sb-leftpanel");
 		var rightPanel = $("<div />").attr("id", "sb-rightpanel");
-		var topLeftPanel = $("<div />").attr("id", "sb-topleftpanel");
-		topLeftPanel.html(currentDir);
-		var topRightPanel = $("<div />").attr("id", "sb-toprightpanel");
-		topRightPanel.append($("<a />").attr("href", "http://www.sensebrowser.org").attr("target", "_blank").html("SenseBrowser"));
-		var bottomRightPanel = $("<div />").attr("id", "sb-bottomrightpanel");
-		var bottomLeftPanel = $("<div />").attr("id", "sb-bottomleftpanel");
-		var dirList = $("<ul />").attr("id", "sb-dirlist");
+		var topPanel = $("<div />").attr("id", "sb-toppanel").attr('class', 'ui-widget-header ui-dialog-titlebar ui-corner-all ui-helper-clearfix');
+		topPanel.append($("<a />").attr("href", "http://www.sensebrowser.org").attr("target", "_blank").html("SenseBrowser").attr('id', 'sb-headerlink').attr('class', 'ui-dialog-title'));
+		var bottomPanel = $("<div />").attr("id", "sb-bottompanel");
+		var curDir = $('<ul />').attr('id', 'sb-curdir').append($('<li />').append($('<span />').attr('class', 'ui-icon ui-icon-folder-open').attr('style', 'float: left;')).append(currentDir));
+		var dirList = $("<ul />").attr("id", "sb-dirlist").attr('style', 'border-left: 1px dotted #000;');
 		var key;
 		for (key in sbDirs) {
-			dirList.append($("<li />").append($("<img />").attr("src", this.layoutDir + 'folder_blue.png').attr("alt", "folder")).append($("<a />").attr("href", "#").attr("rel", sbDirs[key]).html(key).click(function () { browserObj.initialize($(this).attr("rel")); return false; })));
+			dirList.append($("<li />").append($('<span />').html('&middot;&middot;').attr('style', 'float: left; font-size: 5pt; margin-top: 3px;')).append($("<span />").attr("class", "ui-icon ui-icon-folder-collapsed").attr('style', 'float: left;')).append($("<a />").attr("href", "#").attr("rel", sbDirs[key]).html(key).click(function () { browserObj.initialize($(this).attr("rel")); return false; })));
 		}
+		curDir.append($('<li />').append(dirList));
 		for (key in sbFiles) {
-			var tnBlock = $("<div />").attr("class", "sb-thumbnail").click(function() { browserObj.selectedImg = $(this).find("img:first-child").attr('rel'); $('.sb-thumbnail').removeClass('sb-thumbnail-active'); $(this).addClass('sb-thumbnail-active'); });
+			var tnBlock = $("<div />").attr("class", "sb-thumbnail ui-state-default").click(function() { browserObj.selectedImg = $(this).find("img:first-child").attr('rel'); $('.sb-thumbnail').removeClass('ui-state-highlight'); $(this).addClass('ui-state-highlight'); });
 			tnBlock.append($("<img />").attr("src", sbFiles[key]).attr("alt", key).attr("rel", sbFiles[key]));
 			tnBlock.append($("<br />"));
 			var fileName = key;
@@ -67,11 +68,9 @@ function SenseBrowser(elementId, options) {
 			rightPanel.append(tnBlock);
 		}
 
-		bottomLeftPanel.append(
+		bottomPanel.append(
 			$("<ul />").append(
 				$("<li />").append(
-					$("<img />").attr("src", this.layoutDir + "folder_red.png")
-				).append(
 					$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
 						function() { 
 							var newDir = prompt("Uuden hakemiston nimi", "");
@@ -87,30 +86,45 @@ function SenseBrowser(elementId, options) {
 							);
 							return false; 
 						}
-					)
+					).button({icons: {primary: 'ui-icon-circle-plus'}})
 				)
 			)
 		);
-		var uploadButton = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
-		bottomRightPanel.append(uploadButton);
-		bottomRightPanel.append($("<img />").attr("id", "sb-apply").attr("src", this.layoutDir + "apply.png").attr("title", "Käytä").click(function() { browserObj.applyFunction(browserObj.selectedImg); }));
-		bottomRightPanel.append($("<img />").attr("id", "sb-cancel").attr("src", this.layoutDir + "button_cancel.png").attr("title", "Peruuta").click(function() { browserObj.cancelFunction(); }));
+		
+		var uploadButton = $('<a>Lataa koneelta</a>');
+		uploadButton.button({icons: {primary: 'ui-icon-extlink'}});
+		uploadButton.click(function() {
+			$('#sb-fileupload').dialog('open');
+		});
+		bottomPanel.append(uploadButton);
+		bottomPanel.append($('<div />').attr('style', 'float: right;').append(
+				$("<a />").attr("id", "sb-cancel").attr("href", "#").text('Peruuta').attr('class', 'ui-priority-secondary').button({icons: {primary: 'ui-icon-close'}}).click(function() { browserObj.cancelFunction(); })
+			).append(
+			$("<a />").attr("id", "sb-apply").attr("href", "#").text('Valitse').attr('class', 'ui-priority-primary').button({icons: {primary: 'ui-icon-check'}}).click(function() { browserObj.applyFunction(browserObj.selectedImg); })
+		));
 
-		leftPanel.append(dirList);
+		leftPanel.append(curDir);
 		this.container.removeClass('ajax-loading');
-		this.container.append(topLeftPanel);
-		this.container.append(topRightPanel);
+		this.container.append(topPanel);
 		this.container.append(leftPanel);
 		this.container.append(rightPanel);
-		this.container.append(bottomLeftPanel);
-		this.container.append(bottomRightPanel);
-		uploadButton.uploadify({
+		this.container.append(bottomPanel);
+		
+		var fileUploadDiv = $('<div />').attr('id', 'sb-fileupload').attr('style', 'display: none;');
+		var uploadInput = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
+		fileUploadDiv.append(uploadInput);
+		this.container.append(fileUploadDiv);
+		fileUploadDiv.dialog({
+			title: 'Lataa tietokoneelta',
+			height: 140,
+			modal: true,
+			autoOpen: false
+		});
+		
+		uploadInput.uploadify({
 			'uploader'  : this.libDir + 'uploadify/uploadify.swf',
 			'script'    : this.uploaderScript,
-			'cancelImg' : this.layoutDir + 'uploadify_cancel.png',
-			'buttonImg' : this.layoutDir + 'upload_fi.png',
-			'height'	: 18,
-			'width'		: 116,
+			'buttonText': 'Valitse tiedosto',
 			'fileDataName': 'file',
 			'wmode'		: 'transparent',
 			'folder'	: currentDir,
@@ -120,13 +134,18 @@ function SenseBrowser(elementId, options) {
 				if (refreshDir == '/') {
 					refreshDir == "";
 				}
+				fileUploadDiv.dialog('close');
 				browserObj.initialize(refreshDir);
 				return true;
 			}
 		});
+		$('#sb-uploadfileUploader').css({
+			'background-color': '#f00;'
+		});
 		
 		//Select first
 		rightPanel.find("div:first-child").click();
+		//this.container.resizable({alsoResize: rightPanel});
 	}
 	return this;
 }
