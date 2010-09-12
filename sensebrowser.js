@@ -6,6 +6,8 @@ function SenseBrowser(elementId, options) {
 	this.layoutDir = options.layoutDir != undefined ? options.layoutDir : 'layout/';
 	this.libDir = options.libDir != undefined ? options.libDir : 'lib/';
 	this.cancelFunction = options.cancelFunction != undefined ? options.cancelFunction : function() { window.close(); }
+	this.allowUploads = options.allowUploads != undefined ? options.allowUploads : false;
+	this.allowDirectoryCreate = options.allowDirectoryCreate != undefined ? options.allowDirectoryCreate : false;
 	
 	switch(options.mode) {
 		case "ckeditor":
@@ -48,7 +50,7 @@ function SenseBrowser(elementId, options) {
 		$('#sb-fileupload').dialog('destroy');
 		$('#sb-fileupload').remove();
 		this.container.html("");
-		this.container.addClass('ui-corner-all ui-widget-content ui-widget ui-dialog');
+		this.container.addClass('ui-corner-all ui-widget-content ui-widget ui-dialog sb-container');
 		this.container.css('font-size', '8pt');
 		this.container.append($('<div />').attr('style', "padding: 0px 0px 40px 5px; background-image: url('" + this.layoutDir + "ajax-loader.gif'); background-repeat: no-repeat; background-position: left center;").text('Ladataan..'));
 		var browserObj = this;
@@ -91,41 +93,44 @@ function SenseBrowser(elementId, options) {
 			tnBlock.append($("<span />").html(fileName));
 			rightPanel.append(tnBlock);
 		}
-
-		bottomPanel.append(
-			$("<ul />").append(
-				$("<li />").append(
-					$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
-						function() { 
-							var newDir = prompt("Uuden hakemiston nimi", "");
-							if (newDir == '' || newDir == null) {
-								return false;
+		if (this.allowDirectoryCreate) {
+			bottomPanel.append(
+				$("<ul />").append(
+					$("<li />").append(
+						$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
+							function() { 
+								var newDir = prompt("Uuden hakemiston nimi", "");
+								if (newDir == '' || newDir == null) {
+									return false;
+								}
+								$.get(
+									browserObj.dirCreatorScript, 
+									{ currentDirectory: currentDir, newDirectory: newDir},
+									function() {
+										browserObj.initialize(currentDir);
+									}	
+								);
+								return false; 
 							}
-							$.get(
-								browserObj.dirCreatorScript, 
-								{ currentDirectory: currentDir, newDirectory: newDir},
-								function() {
-									browserObj.initialize(currentDir);
-								}	
-							);
-							return false; 
-						}
-					).button({icons: {primary: 'ui-icon-circle-plus'}})
+						).button({icons: {primary: 'ui-icon-circle-plus'}})
+					)
 				)
-			)
-		);
+			);
+		}
 		
-		var uploadButton = $('<a>Lataa koneelta</a>');
-		uploadButton.button({icons: {primary: 'ui-icon-extlink'}});
-		uploadButton.click(function() {
-			$('#sb-fileupload').dialog('open');
-			$('#sb-fileupload').parent().css('font-size', '8pt');
-		});
-		bottomPanel.append(uploadButton);
+		if (this.allowUpload) {
+			var uploadButton = $('<a>Lataa koneelta</a>');
+			uploadButton.button({icons: {primary: 'ui-icon-extlink'}});
+			uploadButton.click(function() {
+				$('#sb-fileupload').dialog('open');
+				$('#sb-fileupload').parent().css('font-size', '8pt');
+			});
+			bottomPanel.append(uploadButton);
+		}
 		bottomPanel.append($('<div />').attr('style', 'float: right;').append(
-				$("<a />").attr("id", "sb-cancel").attr("href", "#").text('Peruuta').attr('class', 'ui-priority-secondary').button({icons: {primary: 'ui-icon-close'}}).click(function() { browserObj.cancelFunction(); })
+				$("<a />").attr("id", "sb-cancel").attr("href", "#").text('Peruuta').attr('class', 'ui-priority-secondary').button({icons: {primary: 'ui-icon-close'}}).click(function() { browserObj.cancelFunction(); return false; })
 			).append(
-			$("<a />").attr("id", "sb-apply").attr("href", "#").text('Valitse').attr('class', 'ui-priority-primary').button({icons: {primary: 'ui-icon-check'}}).click(function() { browserObj.applyFunction(browserObj.selectedImg); })
+			$("<a />").attr("id", "sb-apply").attr("href", "#").text('Valitse').attr('class', 'ui-priority-primary').button({icons: {primary: 'ui-icon-check'}}).click(function() { browserObj.applyFunction(browserObj.selectedImg); return false; })
 		));
 
 		leftPanel.append(curDir);
@@ -135,38 +140,40 @@ function SenseBrowser(elementId, options) {
 		this.container.append(rightPanel);
 		this.container.append(bottomPanel);
 		
-		var fileUploadDiv = $('<div />').attr('id', 'sb-fileupload').attr('style', 'display: none;');
-		var uploadInput = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
-		fileUploadDiv.append(uploadInput);
-		this.container.append(fileUploadDiv);
-		fileUploadDiv.dialog({
-			title: 'Lataa tietokoneelta',
-			height: 140,
-			modal: true,
-			autoOpen: false
-		});
+		if (this.allowUpload) {
+			var fileUploadDiv = $('<div />').attr('id', 'sb-fileupload').attr('style', 'display: none;');
+			var uploadInput = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
+			fileUploadDiv.append(uploadInput);
+			this.container.append(fileUploadDiv);
+			fileUploadDiv.dialog({
+				title: 'Lataa tietokoneelta',
+				height: 140,
+				modal: true,
+				autoOpen: false
+			});
 		
-		uploadInput.uploadify({
-			'uploader'  : this.libDir + 'uploadify/uploadify.swf',
-			'script'    : this.uploaderScript,
-			'buttonText': 'Valitse tiedosto',
-			'fileDataName': 'file',
-			'wmode'		: 'transparent',
-			'folder'	: currentDir,
-			'auto'		: true,
-			onComplete: function(event, queueID, fileObj, response, data) {
-				var refreshDir = currentDir;
-				if (refreshDir == '/') {
-					refreshDir == "";
+			uploadInput.uploadify({
+				'uploader'  : this.libDir + 'uploadify/uploadify.swf',
+				'script'    : this.uploaderScript,
+				'buttonText': 'Valitse tiedosto',
+				'fileDataName': 'file',
+				'wmode'		: 'transparent',
+				'folder'	: currentDir,
+				'auto'		: true,
+				onComplete: function(event, queueID, fileObj, response, data) {
+					var refreshDir = currentDir;
+					if (refreshDir == '/') {
+						refreshDir == "";
+					}
+					fileUploadDiv.dialog('close');
+					browserObj.initialize(refreshDir);
+					return true;
 				}
-				fileUploadDiv.dialog('close');
-				browserObj.initialize(refreshDir);
-				return true;
-			}
-		});
-		$('#sb-uploadfileUploader').css({
-			'background-color': '#f00;'
-		});
+			});
+			$('#sb-uploadfileUploader').css({
+				'background-color': '#f00;'
+			});
+		}
 		
 		//Select first
 		rightPanel.find("div:first-child").click();
