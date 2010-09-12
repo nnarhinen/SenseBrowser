@@ -65,6 +65,10 @@ function SenseBrowser(elementId, options) {
 	}
 	
 	this.redraw = function(sbDirs, sbFiles, currentDir, sbThumbnails) {
+		this.container.css({
+			width: 620,
+			height: 400
+		});
 		if (currentDir == undefined || currentDir == '') {
 			currentDir = "/";
 		}
