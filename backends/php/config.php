@@ -5,13 +5,13 @@
  *
  * You might want to change this!
  */
-$baseDir = realpath(dirname(__FILE__) . "/../../../images");
+$baseDir = realpath(dirname(__FILE__) . "/../../demos/images");
 
 /**
  * The prefix you want to add to your generated file urls
  * ie defining "/images" here results to <img src="/images/file.png" /> for file.png
  */
-$urlPrefix = "/images";
+$urlPrefix = "/demos/images";
 
 $cacheDir = realpath(dirname(__FILE__) . "/cache");
 $cacheUrlPrefix = '/backends/php/cache';

@@ -10,7 +10,6 @@ if (!empty($_GET['directory'])) {
 	$input = rtrim($_GET['directory'], '/') . '/';
 	$input = str_replace('../', '', $input); //We don't want to go any level up in directory hierarchy
 }
-
 $dir = new DirectoryIterator($baseDir . $input);
 
 $directories = array();

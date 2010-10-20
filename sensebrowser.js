@@ -1,102 +1,211 @@
+$.widget("ui.sensebrowser", {
+	
+	currentDirectory: false,
+	selectedFile: false,
+	options: {
+		browserScript: 'browse.php',
+		uploaderScript: 'upload.php',
+		dirCreatorScript: 'create.php',
+		layoutDir: 'layout/',
+		libDir: 'lib/',
+		allowUploads: false,
+		allowDirectoryCreate: false,
+		initialDirectory: '/',
+		cancel: function() { window.close(); },
+		apply: false,
+		mode: 'custom'
+	},
+	_create: function() {
+		this.currentDirectory = this.options.initialDirectory;
+		
+		if (!$.isFunction(this.options.apply)) {
+			switch(this.options.mode) {
+				case "ckeditor":
+					this.options.apply = function(result) {
+						var reParam = new RegExp('(?:[\?&]|&amp;)CKEditorFuncNum=([^&]+)', 'i') ;
+						var match = window.location.search.match(reParam) ;
+						var funcNum = (match && match.length > 1) ? match[1] : '' ;
+						window.opener.CKEDITOR.tools.callFunction(funcNum, result);
+						window.close();
+					}
+					break;
+				case "tinymce":
+					this.options.apply = function(result) {
+						var win = tinyMCEPopup.getWindowArg("window");
+
+						win.document.getElementById(tinyMCEPopup.getWindowArg("input")).value = result;
+
+						if (typeof(win.ImageDialog) != "undefined") {
+							if (win.ImageDialog.getImageData)
+								win.ImageDialog.getImageData();
+							if (win.ImageDialog.showPreviewImage)
+								win.ImageDialog.showPreviewImage(result);
+						}
+						tinyMCEPopup.close();
+					}
+					this.options.cancel = function() {
+						tinyMCEPopup.close();
+					}
+					break;
+				default:
+					this.options.apply = function(result) {
+						alert("Applyfunction undefined");
+					}
+					break;
+			}
+		}
+		
+		this.element.html("");
+		this.element.addClass('ui-corner-all ui-widget ui-widget-content ui-dialog ui-sensebrowser');
+		this.element.css({
+			'font-size': '8pt',
+			'width': '620px',
+			'height': '400px'
+		});
+		this.loadingElement = $('<div />').html('Ladataan..').css({
+			'padding': 			'0px 0px 40px 5px',
+			'background-image': "url('" + this.options.layoutDir + "ajax-loader.gif')",
+			'background-repeat': 'no-repeat',
+			'background-position': 'left center'
+		});
+		
+		this.leftPanelElement = $('<div />')
+									.attr('id', 'sb-leftpanel');
+		this.rightPanelElement = $('<div />')
+									.attr('id', 'sb-rightpanel');
+		this.topPanelElement = $("<div />")
+									.attr("id", "sb-toppanel")
+									.attr('class', 'ui-widget-header ui-dialog-titlebar ui-corner-all ui-helper-clearfix');
+		this.topPanelElement.append($("<a />")
+									.attr("href", "http://www.sensebrowser.org")
+									.attr("target", "_blank")
+									.html("SenseBrowser")
+									.attr('id', 'sb-headerlink')
+									.attr('class', 'ui-dialog-title'));
+		this.bottomPanelElement = $("<div />")
+									.attr("id", "sb-bottompanel");
+		this.currentDirValueElement = $('<span />').text('Loading..');
+		this.currentDirElement = $('<ul />')
+									.attr('id', 'sb-curdir')
+									.append($('<li />')
+									.append($('<span />')
+										.attr('class', 'ui-icon ui-icon-folder-open')
+										.attr('style', 'float: left;')
+									).append(this.currentDirValueElement));
+		this.dirListElement = $("<ul />")
+									.attr("id", "sb-dirlist")
+									.attr('style', 'border-left: 1px dotted #000;');	
+		this.currentDirElement.append($('<li />').append(this.dirListElement));	
+		
+		this.leftPanelElement.append(this.currentDirElement);
+		
+		var browserObj = this;
+		
+		this.bottomPanelElement.append($('<div />')
+											.attr('style', 'float: right;')
+											.append($("<a />")
+												.attr("id", "sb-cancel")
+												.attr("href", "#")
+												.text('Peruuta')
+												.attr('class', 'ui-priority-secondary')
+												.button({
+													icons: {primary: 'ui-icon-close'}
+												}).click(function() { 
+													browserObj.options.cancel(); 
+													return false; 
+												}))
+											.append($("<a />")
+												.attr("id", "sb-apply")
+												.attr("href", "#")
+												.text('Valitse')
+												.attr('class', 'ui-priority-primary')
+												.button({
+													icons: {primary: 'ui-icon-check'}
+												}).click(function() {
+													browserObj.options.apply(browserObj.selectedFile);
+													return false; 
+												})
+											));
+		
+		this.element.append(this.topPanelElement);
+		this.element.append(this.leftPanelElement);
+		this.element.append(this.rightPanelElement);
+		this.element.append(this.bottomPanelElement);
+		
+	},
+	_init: function() {
+		this.redraw();
+	},
+	redraw: function() {
+		var browserObj = this;
+		browserObj.dirListElement.html('');
+		browserObj.rightPanelElement.html('');
+		browserObj.rightPanelElement.append(this.loadingElement);
+		$.getJSON(this.options.browserScript, {directory: this.currentDirectory}, function(data) {
+			browserObj.rightPanelElement.html('');
+			browserObj.currentDirValueElement.text(browserObj.currentDirectory || '/');
+			
+			var key;
+			for (key in data.directories) {
+				browserObj.dirListElement
+					.append($("<li />")
+						.append($('<span />')
+							.html('&middot;&middot;')
+							.attr('style', 'float: left; font-size: 5pt; margin-top: 3px;')
+						).append($("<span />")
+							.attr("class", "ui-icon ui-icon-folder-collapsed")
+							.attr('style', 'float: left;'))
+						.append($("<a />")
+							.attr("href", "#")
+							.attr("rel", data.directories[key])
+							.html(key)
+							.click(function () { 
+								browserObj.currentDirectory = $(this).attr("rel");
+								browserObj.redraw();
+								return false; 
+							})));
+			}
+			for (key in data.files) {
+				var tnBlock = $("<div />")
+								.attr("class", "sb-thumbnail ui-state-default")
+								.click(function() { 
+									browserObj.selectedFile = $(this).find("img:first-child").attr('rel'); 
+									$('.sb-thumbnail').removeClass('ui-state-highlight'); 
+									$(this).addClass('ui-state-highlight'); 
+								});
+				var src = data.thumbnails.hasOwnProperty(key) ? data.thumbnails[key] : data.files[key];
+				tnBlock.append($("<img />").attr("src", src).attr("alt", key).attr("rel", data.files[key]));
+				tnBlock.append($("<br />"));
+				var fileName = key;
+				if (fileName.length > 15) {
+					fileName = fileName.substring(0, 12) + "..";
+				}
+				tnBlock.append($("<span />").html(fileName));
+				browserObj.rightPanelElement.append(tnBlock);
+			}
+		});
+	}
+});
+
 function SenseBrowser(elementId, options) {
 	this.container = $("#" + elementId);
-	this.browserScript = options.browserScript != undefined ? options.browserScript : 'browse.php';
-	this.uploaderScript = options.uploaderScript != undefined ? options.uploaderScript : 'upload.php';
-	this.dirCreatorScript = options.dirCreatorScript != undefined ? options.dirCreatorScript : 'create.php';
-	this.layoutDir = options.layoutDir != undefined ? options.layoutDir : 'layout/';
-	this.libDir = options.libDir != undefined ? options.libDir : 'lib/';
 	this.cancelFunction = options.cancelFunction != undefined ? options.cancelFunction : function() { window.close(); }
-	this.allowUploads = options.allowUploads != undefined ? options.allowUploads : false;
-	this.allowDirectoryCreate = options.allowDirectoryCreate != undefined ? options.allowDirectoryCreate : false;
 	
-	switch(options.mode) {
-		case "ckeditor":
-			this.applyFunction = function(result) {
-				var reParam = new RegExp('(?:[\?&]|&amp;)CKEditorFuncNum=([^&]+)', 'i') ;
-				var match = window.location.search.match(reParam) ;
-				var funcNum = (match && match.length > 1) ? match[1] : '' ;
-				window.opener.CKEDITOR.tools.callFunction(funcNum, result);
-				window.close();
-			}
-			this.cancelFunction = function() {
-				window.close();
-			}
-			break;
-		case "tinymce":
-			this.applyFunction = function(result) {
-				var win = tinyMCEPopup.getWindowArg("window");
-
-				win.document.getElementById(tinyMCEPopup.getWindowArg("input")).value = result;
-
-				if (typeof(win.ImageDialog) != "undefined") {
-					if (win.ImageDialog.getImageData)
-						win.ImageDialog.getImageData();
-					if (win.ImageDialog.showPreviewImage)
-						win.ImageDialog.showPreviewImage(result);
-				}
-				tinyMCEPopup.close();
-			}
-			this.cancelFunction = function() {
-				tinyMCEPopup.close();
-			}
-			break;
-		default:
-			this.applyFunction = options.onApply;
-			this.cancelFunction = options.onCancel;
-			break;
-	}
+	
 	
 	this.initialize = function(input) {
 		$('#sb-fileupload').dialog('destroy');
 		$('#sb-fileupload').remove();
-		this.container.html("");
-		this.container.addClass('ui-corner-all ui-widget-content ui-widget ui-dialog sb-container');
-		this.container.css('font-size', '8pt');
-		this.container.append($('<div />').attr('style', "padding: 0px 0px 40px 5px; background-image: url('" + this.layoutDir + "ajax-loader.gif'); background-repeat: no-repeat; background-position: left center;").text('Ladataan..'));
-		var browserObj = this;
-		var currentDir = input;
-		$.getJSON(this.browserScript, {directory: input}, function(data) {
-			sbDirs = data.directories;
-			sbFiles = data.files;
-			sbThumbnails = data.thumbnails;
-			browserObj.container.html('');
-			browserObj.redraw(sbDirs, sbFiles, currentDir, sbThumbnails);
-		});
+		
 	}
 	
 	this.redraw = function(sbDirs, sbFiles, currentDir, sbThumbnails) {
-		this.container.css({
-			width: 620,
-			height: 400
-		});
 		if (currentDir == undefined || currentDir == '') {
 			currentDir = "/";
 		}
 		var browserObj = this;
-		var leftPanel = $("<div />").attr("id", "sb-leftpanel");
-		var rightPanel = $("<div />").attr("id", "sb-rightpanel");
-		var topPanel = $("<div />").attr("id", "sb-toppanel").attr('class', 'ui-widget-header ui-dialog-titlebar ui-corner-all ui-helper-clearfix');
-		topPanel.append($("<a />").attr("href", "http://www.sensebrowser.org").attr("target", "_blank").html("SenseBrowser").attr('id', 'sb-headerlink').attr('class', 'ui-dialog-title'));
-		var bottomPanel = $("<div />").attr("id", "sb-bottompanel");
-		var curDir = $('<ul />').attr('id', 'sb-curdir').append($('<li />').append($('<span />').attr('class', 'ui-icon ui-icon-folder-open').attr('style', 'float: left;')).append(currentDir));
-		var dirList = $("<ul />").attr("id", "sb-dirlist").attr('style', 'border-left: 1px dotted #000;');
-		var key;
-		for (key in sbDirs) {
-			dirList.append($("<li />").append($('<span />').html('&middot;&middot;').attr('style', 'float: left; font-size: 5pt; margin-top: 3px;')).append($("<span />").attr("class", "ui-icon ui-icon-folder-collapsed").attr('style', 'float: left;')).append($("<a />").attr("href", "#").attr("rel", sbDirs[key]).html(key).click(function () { browserObj.initialize($(this).attr("rel")); return false; })));
-		}
-		curDir.append($('<li />').append(dirList));
-		for (key in sbFiles) {
-			var tnBlock = $("<div />").attr("class", "sb-thumbnail ui-state-default").click(function() { browserObj.selectedImg = $(this).find("img:first-child").attr('rel'); $('.sb-thumbnail').removeClass('ui-state-highlight'); $(this).addClass('ui-state-highlight'); });
-			var src = sbThumbnails.hasOwnProperty(key) ? sbThumbnails[key] : sbFiles[key];
-			tnBlock.append($("<img />").attr("src", src).attr("alt", key).attr("rel", sbFiles[key]));
-			tnBlock.append($("<br />"));
-			var fileName = key;
-			if (fileName.length > 15) {
-				fileName = fileName.substring(0, 12) + "..";
-			}
-			tnBlock.append($("<span />").html(fileName));
-			rightPanel.append(tnBlock);
-		}
+		
+		
 		if (this.allowDirectoryCreate) {
 			bottomPanel.append(
 				$("<ul />").append(
@@ -131,18 +240,9 @@ function SenseBrowser(elementId, options) {
 			});
 			bottomPanel.append(uploadButton);
 		}
-		bottomPanel.append($('<div />').attr('style', 'float: right;').append(
-				$("<a />").attr("id", "sb-cancel").attr("href", "#").text('Peruuta').attr('class', 'ui-priority-secondary').button({icons: {primary: 'ui-icon-close'}}).click(function() { browserObj.cancelFunction(); return false; })
-			).append(
-			$("<a />").attr("id", "sb-apply").attr("href", "#").text('Valitse').attr('class', 'ui-priority-primary').button({icons: {primary: 'ui-icon-check'}}).click(function() { browserObj.applyFunction(browserObj.selectedImg); return false; })
-		));
+		
 
-		leftPanel.append(curDir);
-		this.container.removeClass('ajax-loading');
-		this.container.append(topPanel);
-		this.container.append(leftPanel);
-		this.container.append(rightPanel);
-		this.container.append(bottomPanel);
+		
 		
 		if (this.allowUpload) {
 			var fileUploadDiv = $('<div />').attr('id', 'sb-fileupload').attr('style', 'display: none;');
