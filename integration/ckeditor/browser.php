@@ -15,15 +15,14 @@
 	<script type="text/javascript" src="../../sensebrowser.js"></script>
 	<script type="text/javascript">
 	$(document).ready(function() {
-		var sBrowser = new SenseBrowser("sb-container", {
-			'browserScript'	: '../../backends/php/browse.php',
-			'uploaderScript': '../../backends/php/upload.php',
-			'dirCreatorScript' : '../../backends/php/create.php',
-			'libDir' : '../../lib/',
-			'layoutDir' : '../../layout/',
-			'mode' : 'ckeditor'
+		$('#sb-container').sensebrowser({
+			browserScript: '../../backends/php/browse.php',
+			uploaderScript: '../../backends/php/upload.php',
+			dirCreatorScript : '../../backends/php/create.php',
+			libDir : '../../lib/',
+			layoutDir : '../../layout/',
+			mode: 'ckeditor'
 		});
-		sBrowser.initialize();
 	});
 	</script>
 </head>

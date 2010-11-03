@@ -101,6 +101,49 @@ $.widget("ui.sensebrowser", {
 		
 		var browserObj = this;
 		
+		if (this.options.allowDirectoryCreate) {
+			this.bottomPanelElement.append(
+				$("<ul />").append(
+					$("<li />").append(
+						$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
+							function() { 
+								var newDir = prompt("Uuden hakemiston nimi", "");
+								if (newDir == '' || newDir == null) {
+									return false;
+								}
+								$.ajax({
+									url: browserObj.options.dirCreatorScript,
+									data: { currentDirectory: browserObj.currentDirectory, newDirectory: newDir},
+									success: function() {
+										browserObj.redraw();
+									},
+									error: function() {
+										alert('Failed to create directory');
+									}
+								});
+								return false; 
+							}
+						).button({icons: {primary: 'ui-icon-circle-plus'}})
+					)
+				)
+			);
+		}
+		
+		if (this.options.allowUploads) {
+			this.uploadButton = $('<a>Lataa koneelta</a>')
+				.button({icons: {primary: 'ui-icon-extlink'}})
+				.click(function() {
+					$('#sb-fileupload').dialog('open');
+				}).appendTo(this.bottomPanelElement);			
+			
+			this.fileUploadIframe = this._createUploadIframe();
+
+			this.fileUploadForm = this._createUploadForm();
+				
+			this.fileUploadDiv = this._createUploadDiv();
+			this.element.append(this.fileUploadDiv);
+		}
+		
 		this.bottomPanelElement.append($('<div />')
 											.attr('style', 'float: right;')
 											.append($("<a />")
@@ -135,6 +178,65 @@ $.widget("ui.sensebrowser", {
 	},
 	_init: function() {
 		this.redraw();
+	},
+	_createFileInput: function() {
+		return $('<input />')
+			.attr('type', 'file')
+			.attr('name', 'file')
+			.attr('style', 'width: 100%;')
+			.appendTo(this.fileUploadLabel);
+	},
+	_createUploadForm: function() {
+		this.fileUploadLabel = $('<label />').text('Valitse tiedosto');
+		this.fileUploadInput = this._createFileInput();
+		this.fileUploadCurrentDirInput = $('<input />')
+			.attr('type', 'hidden')
+			.attr('name', 'directory')
+			.attr('value', this.currentDirectory);
+		return 	$('<form />', {
+				method: 'post',
+				target: 'sb-fileuploadiframe',
+				action: this.options.uploaderScript,
+				enctype: 'multipart/form-data'
+			}).append(this.fileUploadLabel).append(this.fileUploadCurrentDirInput);
+	},
+	_createUploadDiv: function() {
+		var browserObj = this;
+		return $('<div />')
+			.attr('id', 'sb-fileupload')
+			.attr('style', 'display: none;')
+			.append(this.fileUploadIframe)
+			.append(this.fileUploadForm)
+			.dialog({
+				title: 'Lataa tietokoneelta',
+				height: 140,
+				modal: true,
+				autoOpen: false,
+				buttons: {
+					'Lähetä': function() {
+						browserObj.fileUploadIframe.load(function() {
+								$(this).unbind('load');
+								$('#sb-fileupload').dialog('destroy');
+								browserObj.fileUploadDiv.remove();
+								browserObj.fileUploadIframe.remove();
+								browserObj.fileUploadIframe = browserObj._createUploadIframe();
+								browserObj.fileUploadForm = browserObj._createUploadForm();
+								browserObj.fileUploadDiv = browserObj._createUploadDiv();
+								browserObj.element.append(browserObj.fileUploadDiv);
+								browserObj.redraw();
+							});
+						browserObj.fileUploadCurrentDirInput.val(browserObj.currentDirectory);
+						browserObj.fileUploadForm.submit();
+					}
+				}
+			}).parent().css('font-size', '8pt');
+	},
+	_createUploadIframe: function() {
+		return $('<iframe></iframe>', {
+			src: 'about:blank',
+			style: 'display: none',
+			name: 'sb-fileuploadiframe'
+		});
 	},
 	redraw: function() {
 		var browserObj = this;
@@ -186,102 +288,3 @@ $.widget("ui.sensebrowser", {
 		});
 	}
 });
-
-function SenseBrowser(elementId, options) {
-	this.container = $("#" + elementId);
-	this.cancelFunction = options.cancelFunction != undefined ? options.cancelFunction : function() { window.close(); }
-	
-	
-	
-	this.initialize = function(input) {
-		$('#sb-fileupload').dialog('destroy');
-		$('#sb-fileupload').remove();
-		
-	}
-	
-	this.redraw = function(sbDirs, sbFiles, currentDir, sbThumbnails) {
-		if (currentDir == undefined || currentDir == '') {
-			currentDir = "/";
-		}
-		var browserObj = this;
-		
-		
-		if (this.allowDirectoryCreate) {
-			bottomPanel.append(
-				$("<ul />").append(
-					$("<li />").append(
-						$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
-							function() { 
-								var newDir = prompt("Uuden hakemiston nimi", "");
-								if (newDir == '' || newDir == null) {
-									return false;
-								}
-								$.get(
-									browserObj.dirCreatorScript, 
-									{ currentDirectory: currentDir, newDirectory: newDir},
-									function() {
-										browserObj.initialize(currentDir);
-									}	
-								);
-								return false; 
-							}
-						).button({icons: {primary: 'ui-icon-circle-plus'}})
-					)
-				)
-			);
-		}
-		
-		if (this.allowUpload) {
-			var uploadButton = $('<a>Lataa koneelta</a>');
-			uploadButton.button({icons: {primary: 'ui-icon-extlink'}});
-			uploadButton.click(function() {
-				$('#sb-fileupload').dialog('open');
-				$('#sb-fileupload').parent().css('font-size', '8pt');
-			});
-			bottomPanel.append(uploadButton);
-		}
-		
-
-		
-		
-		if (this.allowUpload) {
-			var fileUploadDiv = $('<div />').attr('id', 'sb-fileupload').attr('style', 'display: none;');
-			var uploadInput = $("<input />").attr("type", "file").attr("name", "uploadfile").attr("id", "sb-uploadfile");
-			fileUploadDiv.append(uploadInput);
-			this.container.append(fileUploadDiv);
-			fileUploadDiv.dialog({
-				title: 'Lataa tietokoneelta',
-				height: 140,
-				modal: true,
-				autoOpen: false
-			});
-		
-			uploadInput.uploadify({
-				'uploader'  : this.libDir + 'uploadify/uploadify.swf',
-				'script'    : this.uploaderScript,
-				'buttonText': 'Valitse tiedosto',
-				'fileDataName': 'file',
-				'wmode'		: 'transparent',
-				'folder'	: currentDir,
-				'auto'		: true,
-				onComplete: function(event, queueID, fileObj, response, data) {
-					var refreshDir = currentDir;
-					if (refreshDir == '/') {
-						refreshDir == "";
-					}
-					fileUploadDiv.dialog('close');
-					browserObj.initialize(refreshDir);
-					return true;
-				}
-			});
-			$('#sb-uploadfileUploader').css({
-				'background-color': '#f00;'
-			});
-		}
-		
-		//Select first
-		rightPanel.find("div:first-child").click();
-		//this.container.resizable({alsoResize: rightPanel});
-	}
-	return this;
-}
