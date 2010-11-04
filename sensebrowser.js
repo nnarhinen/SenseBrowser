@@ -270,6 +270,7 @@ $.widget("ui.sensebrowser", {
 			for (key in data.files) {
 				var tnBlock = $("<div />")
 								.attr("class", "sb-thumbnail ui-state-default")
+								.attr('title', key)
 								.click(function() { 
 									browserObj.selectedFile = $(this).find("img:first-child").attr('rel'); 
 									$('.sb-thumbnail').removeClass('ui-state-highlight'); 
