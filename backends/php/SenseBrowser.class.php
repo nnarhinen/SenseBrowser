@@ -87,7 +87,7 @@ class SenseBrowser
 									$thumb->thumbnailImage(150,0);
 								}
 								$thumb->setImageFormat('png');
-								$thumb->writeImage($cacheDir . '/' . $thumbFileName);
+								$thumb->writeImage($this->cacheDir . '/' . $thumbFileName);
 							}
 							$thumbnails[$file->getFileName()] = $this->cacheUrlPrefix . '/' . $thumbFileName;
 						}
