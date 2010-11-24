@@ -20,7 +20,17 @@ $.widget("ui.sensebrowser", {
 		initialDirectory: '/',
 		cancel: function() { window.close(); },
 		apply: false,
-		mode: 'custom'
+		mode: 'custom',
+		//Localization:
+		loadingText: 'Loading..',
+		newDirectoryText: 'New Directory',
+		newDirectoryPromptText: 'Name of new directory',
+		uploadText: 'Upload from computer',
+		cancelText: 'Cancel',
+		applyText: 'Choose',
+		chooseFileText: 'Choose file',
+		sendFileText: 'Send'
+		
 	},
 	_create: function() {
 		this.currentDirectory = this.options.initialDirectory;
@@ -69,7 +79,7 @@ $.widget("ui.sensebrowser", {
 			'width': '620px',
 			'height': '400px'
 		});
-		this.loadingElement = $('<div />').html('Ladataan..').css({
+		this.loadingElement = $('<div />').html(this.options.loadingText).css({
 			'padding': 			'0px 0px 40px 5px',
 			'background-image': "url('" + this.options.layoutDir + "ajax-loader.gif')",
 			'background-repeat': 'no-repeat',
@@ -91,7 +101,7 @@ $.widget("ui.sensebrowser", {
 									.attr('class', 'ui-dialog-title'));
 		this.bottomPanelElement = $("<div />")
 									.attr("id", "sb-bottompanel");
-		this.currentDirValueElement = $('<span />').text('Loading..');
+		this.currentDirValueElement = $('<span />').text(this.options.loadingText);
 		this.currentDirElement = $('<ul />')
 									.attr('id', 'sb-curdir')
 									.append($('<li />')
@@ -112,9 +122,9 @@ $.widget("ui.sensebrowser", {
 			this.bottomPanelElement.append(
 				$("<ul />").append(
 					$("<li />").append(
-						$("<a />").attr("id", "sb-newdirectory").attr("href", "#").html("Uusi hakemisto").click(
+						$("<button></button>").attr("id", "sb-newdirectory").html(this.options.newDirectoryText).click(
 							function() { 
-								var newDir = prompt("Uuden hakemiston nimi", "");
+								var newDir = prompt(browserObj.options.newDirectoryPromptText, "");
 								if (newDir == '' || newDir == null) {
 									return false;
 								}
@@ -137,7 +147,7 @@ $.widget("ui.sensebrowser", {
 		}
 		
 		if (this.options.allowUploads) {
-			this.uploadButton = $('<a>Lataa koneelta</a>')
+			this.uploadButton = $('<button></button>').html(this.options.uploadText)
 				.button({icons: {primary: 'ui-icon-extlink'}})
 				.click(function() {
 					$('#sb-fileupload').dialog('open');
@@ -153,10 +163,9 @@ $.widget("ui.sensebrowser", {
 		
 		this.bottomPanelElement.append($('<div />')
 											.attr('style', 'float: right;')
-											.append($("<a />")
+											.append($("<button></button>")
 												.attr("id", "sb-cancel")
-												.attr("href", "#")
-												.text('Peruuta')
+												.text(this.options.cancelText)
 												.attr('class', 'ui-priority-secondary')
 												.button({
 													icons: {primary: 'ui-icon-close'}
@@ -164,10 +173,9 @@ $.widget("ui.sensebrowser", {
 													browserObj.options.cancel(); 
 													return false; 
 												}))
-											.append($("<a />")
+											.append($("<button></button>")
 												.attr("id", "sb-apply")
-												.attr("href", "#")
-												.text('Valitse')
+												.text(this.options.applyText)
 												.attr('class', 'ui-priority-primary')
 												.button({
 													icons: {primary: 'ui-icon-check'}
@@ -194,7 +202,7 @@ $.widget("ui.sensebrowser", {
 			.appendTo(this.fileUploadLabel);
 	},
 	_createUploadForm: function() {
-		this.fileUploadLabel = $('<label />').text('Valitse tiedosto');
+		this.fileUploadLabel = $('<label />').text(this.options.chooseFileText);
 		this.fileUploadInput = this._createFileInput();
 		this.fileUploadCurrentDirInput = $('<input />')
 			.attr('type', 'hidden')
@@ -215,27 +223,30 @@ $.widget("ui.sensebrowser", {
 			.append(this.fileUploadIframe)
 			.append(this.fileUploadForm)
 			.dialog({
-				title: 'Lataa tietokoneelta',
+				title: this.options.uploadText,
 				height: 140,
 				modal: true,
 				autoOpen: false,
-				buttons: {
-					'Lähetä': function() {
-						browserObj.fileUploadIframe.load(function() {
-								$(this).unbind('load');
-								$('#sb-fileupload').dialog('destroy');
-								browserObj.fileUploadDiv.remove();
-								browserObj.fileUploadIframe.remove();
-								browserObj.fileUploadIframe = browserObj._createUploadIframe();
-								browserObj.fileUploadForm = browserObj._createUploadForm();
-								browserObj.fileUploadDiv = browserObj._createUploadDiv();
-								browserObj.element.append(browserObj.fileUploadDiv);
-								browserObj.redraw();
-							});
-						browserObj.fileUploadCurrentDirInput.val(browserObj.currentDirectory);
-						browserObj.fileUploadForm.submit();
+				buttons: [
+					{
+					 	text: this.options.sendFileText,
+						click: function() {
+							browserObj.fileUploadIframe.load(function() {
+									$(this).unbind('load');
+									$('#sb-fileupload').dialog('destroy');
+									browserObj.fileUploadDiv.remove();
+									browserObj.fileUploadIframe.remove();
+									browserObj.fileUploadIframe = browserObj._createUploadIframe();
+									browserObj.fileUploadForm = browserObj._createUploadForm();
+									browserObj.fileUploadDiv = browserObj._createUploadDiv();
+									browserObj.element.append(browserObj.fileUploadDiv);
+									browserObj.redraw();
+								});
+							browserObj.fileUploadCurrentDirInput.val(browserObj.currentDirectory);
+							browserObj.fileUploadForm.submit();
+						}
 					}
-				}
+				]
 			}).parent().css('font-size', '8pt');
 	},
 	_createUploadIframe: function() {
@@ -256,7 +267,6 @@ $.widget("ui.sensebrowser", {
 			
 			var key;
 			for (key in data.directories) {
-				var directory = data.directories[key];
 				browserObj.dirListElement
 					.append($("<li />")
 						.append($('<span />')
@@ -265,8 +275,8 @@ $.widget("ui.sensebrowser", {
 						).append($("<span />")
 							.attr("class", "ui-icon ui-icon-folder-collapsed")
 							.attr('style', 'float: left;'))
-						.append(key).css('cursor', 'pointer').click(function () { 
-								browserObj.currentDirectory = directory;
+						.append(key).css('cursor', 'pointer').data('directory', data.directories[key]).click(function () { 
+								browserObj.currentDirectory = $(this).data('directory');
 								browserObj.redraw();
 								return false; 
 							}));

@@ -40,27 +40,6 @@
 #sb-leftpanel li, #sb-bottompanel li {
 	clear: both;
 }
-#sb-leftpanel li img, #sb-bottompanel li img {
-	vertical-align: middle;
-	max-width: 20px;
-}
-#sb-leftpanel li a, #sb-bottompanel li a {
-	color: #000;
-	text-decoration: none;
-	font-size: 8pt;
-}
-#sb-leftpanel li a:hover, #sb-bottompanel li a:hover {
-	text-decoration: underline;
-}
-#sb-bottompanel object {
-	cursor: hand;
-	cursor: pointer;
-	float: left;
-	margin-top: 5px;
-}
-.uploadifyQueue {
-	float: left;
-}
 .sb-thumbnail {
 	float: left;
 	text-align: center;
