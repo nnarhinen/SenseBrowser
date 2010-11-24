@@ -6,13 +6,13 @@ require_once(realpath(dirname(__FILE__) . '/SenseBrowser.class.php'));
  *
  * You might want to change this!
  */
-$baseDir = realpath(dirname(__FILE__) . "/../../../demoimages");
+$baseDir = realpath(dirname(__FILE__) . "/../../demos/images");
 
 /**
  * The prefix you want to add to your generated file urls
  * ie defining "/images" here results to <img src="/images/file.png" /> for file.png
  */
-$urlPrefix = "/demoimages";
+$urlPrefix = "/demos/images";
 
 $cacheDir = realpath(dirname(__FILE__) . "/cache");
 $cacheUrlPrefix = '/sensebrowser/backends/php/cache';
