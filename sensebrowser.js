@@ -1,3 +1,11 @@
+/*
+ * SenseBrowser v1.0
+ * http://www.sensebrowser.org
+ * 
+ * Copyright 2010, Niklas Närhinen
+ * Dual Licensed under the MIT or GPL version 3 licenses.
+ * 
+ */
 $.widget("ui.sensebrowser", {
 	
 	currentDirectory: false,
@@ -7,7 +15,6 @@ $.widget("ui.sensebrowser", {
 		uploaderScript: 'upload.php',
 		dirCreatorScript: 'create.php',
 		layoutDir: 'layout/',
-		libDir: 'lib/',
 		allowUploads: false,
 		allowDirectoryCreate: false,
 		initialDirectory: '/',
@@ -249,6 +256,7 @@ $.widget("ui.sensebrowser", {
 			
 			var key;
 			for (key in data.directories) {
+				var directory = data.directories[key];
 				browserObj.dirListElement
 					.append($("<li />")
 						.append($('<span />')
@@ -257,15 +265,11 @@ $.widget("ui.sensebrowser", {
 						).append($("<span />")
 							.attr("class", "ui-icon ui-icon-folder-collapsed")
 							.attr('style', 'float: left;'))
-						.append($("<a />")
-							.attr("href", "#")
-							.attr("rel", data.directories[key])
-							.html(key)
-							.click(function () { 
-								browserObj.currentDirectory = $(this).attr("rel");
+						.append(key).css('cursor', 'pointer').click(function () { 
+								browserObj.currentDirectory = directory;
 								browserObj.redraw();
 								return false; 
-							})));
+							}));
 			}
 			for (key in data.files) {
 				var tnBlock = $("<div />")

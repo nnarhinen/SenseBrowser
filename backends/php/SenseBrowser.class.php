@@ -1,4 +1,11 @@
 <?php
+/**
+ * Helper Class for handling file browsing, uploading and directory creation
+ * Dual Licensed under the MIT or GPL version 3 licenses.
+ *
+ * @package sensebrowser
+ * @author Niklas Närhinen
+ **/
 class SenseBrowser
 {
 	protected $baseDir;
@@ -107,5 +114,44 @@ class SenseBrowser
 			}
 		}
 		return array('files' => $files, 'directories' => $directories, 'thumbnails' => $thumbnails);
+	}
+	
+	public function createDirectory($currentDirectory, $newDirectory)
+	{
+		$input = "";
+		if (!empty($currentDirectory)) {
+			$input = $currentDirectory;
+		}
+		if (!empty($newDirectory)) {
+			$input = rtrim($input, '/') .  '/' . $newDirectory;
+		}
+		$input = str_replace('../', '', $input); //We don't want to go any level up in directory hierarchy
+		if (!is_dir($this->baseDir . $input)) {
+			mkdir($this->baseDir . $input);
+		}
+	}
+	
+	public function uploadFile($currentDirectory, $uploadedFile)
+	{
+		$input = "";
+		if (!empty($currentDirectory)) {
+			$input = rtrim($currentDirectory, '/') . '/';
+			$input = str_replace('../', '', $input); //We don't want to go any level up in directory hierarchy
+		}
+
+		$uploadDir = $baseDir . $input;
+
+		//This is not safe!
+		if (strpos(strtolower($uploadedFile['name']), 'jpg') === false) {
+			die("Not an image!");
+		}
+		$uploadFile = $uploadDir . basename($uploadedFile['name']);
+
+		if (move_uploaded_file($uploadedFile['tmp_name'], $uploadFile)) {
+			echo "OK";
+		}
+		else {
+			echo "Unsuccessfull";
+		}
 	}
 }

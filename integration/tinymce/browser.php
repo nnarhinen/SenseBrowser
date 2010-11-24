@@ -16,15 +16,14 @@
 	<script type="text/javascript" src="tiny_mce/tiny_mce_popup.js"></script>
 	<script type="text/javascript">
 	$(document).ready(function() {
-		var sBrowser = new SenseBrowser("sb-container", {
-			'browserScript'	: '../../backends/php/browse.php',
-			'uploaderScript': '../../backends/php/upload.php',
-			'dirCreatorScript' : '../../backends/php/create.php',
-			'libDir' : '../../lib/',
-			'layoutDir' : '../../layout/',
-			'mode' : 'tinymce'
+		$('#sb-container').sensebrowser({
+			browserScript: '../../backends/php/browse.php',
+			uploaderScript: '../../backends/php/upload.php',
+			dirCreatorScript : '../../backends/php/create.php',
+			libDir : '../../lib/',
+			layoutDir : '../../layout/',
+			mode: 'tinymce'
 		});
-		sBrowser.initialize();
 	});
 	</script>
 </head>
