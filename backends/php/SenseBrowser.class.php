@@ -139,12 +139,12 @@ class SenseBrowser
 			$input = str_replace('../', '', $input); //We don't want to go any level up in directory hierarchy
 		}
 
-		$uploadDir = $baseDir . $input;
+		$uploadDir = $this->baseDir . $input;
 
 		//This is not safe!
-		if (strpos(strtolower($uploadedFile['name']), 'jpg') === false) {
-			die("Not an image!");
-		}
+		//if (strpos(strtolower($uploadedFile['name']), 'jpg') === false) {
+		//	die("Not an image!");
+		//}
 		$uploadFile = $uploadDir . basename($uploadedFile['name']);
 
 		if (move_uploaded_file($uploadedFile['tmp_name'], $uploadFile)) {

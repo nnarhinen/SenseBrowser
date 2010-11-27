@@ -8,5 +8,6 @@ include 'config.php';
 $directory = $_GET['directory'];
 
 $senseBrowser = new SenseBrowser($baseDir, $urlPrefix, $cacheDir, $cacheUrlPrefix);
+$senseBrowser->setLayoutUrlPrefix('/layout');
 
 echo json_encode($senseBrowser->browseDirectory($directory));

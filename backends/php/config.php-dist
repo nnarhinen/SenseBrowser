@@ -15,4 +15,4 @@ $baseDir = realpath(dirname(__FILE__) . "/../../demos/images");
 $urlPrefix = "/demos/images";
 
 $cacheDir = realpath(dirname(__FILE__) . "/cache");
-$cacheUrlPrefix = '/sensebrowser/backends/php/cache';
+$cacheUrlPrefix = '/backends/php/cache';
